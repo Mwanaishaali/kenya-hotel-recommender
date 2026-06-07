@@ -221,6 +221,9 @@ class HotelRecommender:
                 "matched_amenities": matched,
                 "photos": row.get("photos", []) if "photos" in row else [],
                 "reviews": row.get("reviews", []) if "reviews" in row else [],
+                "website": row.get("website"),
+                "editorial_summary": row.get("editorial_summary"),
+                "location": row.get("location"),
                 "score": round(float(score[i]), 4),
             })
         return results

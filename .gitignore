@@ -10,5 +10,5 @@ venv/
 # Jupyter
 .ipynb_checkpoints/
 
-# Cached photos (regenerable via build_dataset.py; kept out to stay lean)
-data/photos/
+# data/photos/ is intentionally NOT ignored anymore — the deployed
+# backend serves these images, so they need to be in the repo.
