@@ -61,6 +61,7 @@ FIELD_MASK = ",".join([
     "places.websiteUri",
     "places.photos",
     "places.reviews",
+    "places.priceRange",
     "nextPageToken",
 ])
 
@@ -157,6 +158,20 @@ def parse_place(place, photo_dir, session, photos_per_hotel):
     type_blob = " ".join(place.get("types", []))
     amenities = infer_amenities(f"{editorial} {review_blob} {type_blob}")
 
+    # priceRange is a newer, separate field from priceLevel. Structure:
+    # {"startPrice": {"currencyCode": "KES", "units": "5000"}, "endPrice": {...}}
+    pr = place.get("priceRange")
+    price_range = None
+    if pr:
+        def _money(m):
+            if not m:
+                return None
+            units = m.get("units")
+            return {"amount": int(units) if units is not None else None,
+                    "currency": m.get("currencyCode")}
+        price_range = {"start": _money(pr.get("startPrice")),
+                       "end": _money(pr.get("endPrice"))}
+
     photo_paths = []
     if photo_dir is not None:
         for i, ph in enumerate(place.get("photos", [])[:photos_per_hotel]):
@@ -172,6 +187,7 @@ def parse_place(place, photo_dir, session, photos_per_hotel):
         "rating": place.get("rating"),            # 0.0 - 5.0
         "review_count": place.get("userRatingCount", 0),
         "price_level": PRICE_MAP.get(place.get("priceLevel")),  # 0-4 or None
+        "price_range": price_range,               # {start, end} or None
         "website": place.get("websiteUri"),
         "editorial_summary": editorial,
         "amenities": amenities,
@@ -215,11 +231,18 @@ def main():
                 hotels[pid] = parse_place(p, photo_dir, session, args.photos_per_hotel)
 
     records = list(hotels.values())
-    out_path.write_text(json.dumps(records, indent=2, ensure_ascii=False))
+    out_path.write_text(json.dumps(records, indent=2, ensure_ascii=False), encoding="utf-8")
     print(f"\nSaved {len(records)} unique hotels -> {out_path}")
     if photo_dir:
         print(f"Photos saved -> {photo_dir} "
               f"({len(list(photo_dir.glob('*.jpg')))} files)")
+
+    # Price-data coverage: the whole point of this re-run.
+    with_range = sum(1 for r in records if r.get("price_range"))
+    with_level = sum(1 for r in records if r.get("price_level") is not None)
+    print(f"\nPrice coverage:")
+    print(f"  price_range present: {with_range}/{len(records)}")
+    print(f"  price_level present: {with_level}/{len(records)}")
 
 
 if __name__ == "__main__":

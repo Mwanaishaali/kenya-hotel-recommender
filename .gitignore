@@ -1,6 +1,14 @@
+# Secrets
 .env
+
+# Python
 __pycache__/
 *.pyc
 .venv/
 venv/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Cached photos (regenerable via build_dataset.py; kept out to stay lean)
 data/photos/
