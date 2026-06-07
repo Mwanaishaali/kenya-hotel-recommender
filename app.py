@@ -48,7 +48,7 @@ app = FastAPI(
 # works out of the box; in production set ALLOWED_ORIGINS to your frontend URL
 # (comma-separated for several) to lock it down — no code change needed.
 _origins = os.getenv("ALLOWED_ORIGINS", "*").strip()
-allow_origins = ["*"] if _origins == "*" else [o.strip() for o in _origins.split(",") if o.strip()]
+allow_origins = ["https://kenya-hotel-recommender.vercel.app"] if _origins == "*" else [o.strip() for o in _origins.split(",") if o.strip()]
 
 app.add_middleware(
     CORSMiddleware,
